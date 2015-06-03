@@ -32,12 +32,19 @@ def fetch_portfolio(code):
     dic = json.loads(data)
 
     # add Portfolio
-    portfolio, c = models.Portfolio.objects.get_or_create(code=dic['symbol'], name=dic['name'])
+    portfolio, c = models.Portfolio.objects.get_or_create(code=dic['symbol'])
+    if c:
+        portfolio.name = dic['name']
+        portfolio.save()
     # add Stock
     stocks = dic['view_rebalancing']['holdings']
+    gain = dic['total_gain']
     for s in stocks:
-        stock, c = models.Stock.objects.get_or_create(code=s['stock_symbol'], name=s['stock_name'])
+        stock, c = models.Stock.objects.get_or_create(code=s['stock_symbol']])
+        stock.name = s['stock_name']
         stock.count += 1
+        stock.weight += s['weight']
+        stock.earnings += stock.weight * gain / 10000
         stock.save()
         # add position
         models.Position.objects.get_or_create(portfolio=portfolio, stock=stock)
@@ -59,5 +66,5 @@ portfolios = models.Portfolio.objects.all()
 for p in portfolios:
     print p.id, p.name
     fetch_portfolio(p.code)
-    time.sleep(2)
+    time.sleep(1)
 

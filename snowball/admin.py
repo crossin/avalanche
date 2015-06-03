@@ -2,7 +2,7 @@ from django.contrib import admin
 from snowball import models
 
 class StockAdmin(admin.ModelAdmin):
-    list_display = ['id', 'code', 'name', 'count']
+    list_display = ['id', 'code', 'name', 'weight', 'earnings', 'count']
 
 class PortfolioAdmin(admin.ModelAdmin):
     list_display = ['id', 'code', 'name']

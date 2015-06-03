@@ -4,6 +4,8 @@ class Stock(models.Model):
     code = models.CharField(max_length=16)
     name = models.CharField(max_length=16)
     count = models.IntegerField(default=0)
+    weight = models.FloatField(default=0)
+    earnings = models.FloatField(default=0)
 
     def __unicode__(self):
         return self.code + self.name
