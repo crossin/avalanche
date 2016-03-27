@@ -33,21 +33,32 @@ def fetch_portfolio(code):
 
     # add Portfolio
     portfolio, c = models.Portfolio.objects.get_or_create(code=dic['symbol'])
-    if c:
-        portfolio.name = dic['name']
-        portfolio.save()
+    portfolio.name = dic['name']
+    portfolio.earnings = dic['total_gain']
+    portfolio.save()
     # add Stock
     stocks = dic['view_rebalancing']['holdings']
     gain = dic['total_gain']
     for s in stocks:
-        stock, c = models.Stock.objects.get_or_create(code=s['stock_symbol']])
+        stock, c = models.Stock.objects.get_or_create(code=s['stock_symbol'])
         stock.name = s['stock_name']
         stock.count += 1
         stock.weight += s['weight']
         stock.earnings += stock.weight * gain / 10000
-        stock.save()
         # add position
-        models.Position.objects.get_or_create(portfolio=portfolio, stock=stock)
+        position, c = models.Position.objects.get_or_create(portfolio=portfolio, stock=stock)
+        if c:
+            position.weight = s['weight']
+            position.save()
+        elif position.weight != s['weight']:
+            delta = s['weight'] - position.weight
+            if delta > 0:
+                stock.weight_in += delta;
+            else:
+                stock.weight_out += -delta;
+            position.weight = s['weight']
+            position.save()
+        stock.save()
 
 def get_portfolio_list(page):
     url = 'http://xueqiu.com/cubes/discover/rank/cube/list.json?category=10&count=10&market=cn&page=%d' % page
@@ -61,6 +72,8 @@ def get_portfolio_list(page):
 #     print 'fetch page', page
 #     get_portfolio_list(page)
 #     time.sleep(2)
+
+models.Stock.objects.update(count=0, weight=0, earnings=0, weight_in=0, weight_out=0)
 
 portfolios = models.Portfolio.objects.all()
 for p in portfolios:
